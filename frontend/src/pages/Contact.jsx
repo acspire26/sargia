@@ -15,7 +15,11 @@ const Contact = () => {
     const [companyInfo, setCompanyInfo] = useState(null);
 
     useEffect(() => {
-        getCompanyInfo().then(data => setCompanyInfo(data)).catch(err => console.error(err));
+        getCompanyInfo().then(data => {
+            if (data && data.results && data.results.length > 0) {
+                setCompanyInfo(data.results[0]);
+            }
+        }).catch(err => console.error(err));
     }, []);
 
     const handleChange = (e) => {

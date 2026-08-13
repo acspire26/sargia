@@ -146,9 +146,9 @@ module.exports = (async () => {
       VALUES (?, ?, ?, ?, ?, ?)
     `);
     const seedData = [
-      ['Artemclava', 'Our premier strategic consulting arm serving high-growth enterprises. Artemclava focuses on delivering transformative business strategies and operational excellence.', '', '#', 1, 1],
-      ['Acspire', 'A cutting-edge technology solutions provider. Acspire builds scalable, high-performance software ecosystems designed to outpace market evolution.', '', '#', 2, 1],
-      ['ArtAxis', 'Connecting the global creative economy. ArtAxis leverages technology to empower artists, creators, and platforms in the digital age.', '', '#', 3, 1],
+      ['Artemclava', 'Our premier strategic consulting arm serving high-growth enterprises. Artemclava focuses on delivering transformative business strategies and operational excellence.', 'https://res.cloudinary.com/msfnuwdi/image/upload/v1786342081/ChatGPT_Image_Aug_10_2026_11_37_25_AM.png', 'https://artemclava.in', 1, 1],
+      ['Acspire', 'A cutting-edge technology solutions provider. Acspire builds scalable, high-performance software ecosystems designed to outpace market evolution.', 'https://res.cloudinary.com/msfnuwdi/image/upload/v1786342221/acspire_1024x1024.png', 'https://acspire.in', 2, 1],
+      ['ArtAxis', 'Connecting the global creative economy. ArtAxis leverages technology to empower artists, creators, and platforms in the digital age.', 'https://res.cloudinary.com/msfnuwdi/image/upload/v1786342212/art_axis_1024x1024.png', '', 3, 1],
     ];
     for (const row of seedData) {
       s.bind(row);
@@ -157,6 +157,13 @@ module.exports = (async () => {
     }
     s.free();
   }
+
+  // ── Fix existing businesses with empty logo_url (migration) ──────────────
+  rawDb.exec(`
+    UPDATE businesses SET logo_url = 'https://res.cloudinary.com/msfnuwdi/image/upload/v1786342081/ChatGPT_Image_Aug_10_2026_11_37_25_AM.png', website_url = 'https://artemclava.in' WHERE name = 'Artemclava' AND (logo_url = '' OR logo_url IS NULL);
+    UPDATE businesses SET logo_url = 'https://res.cloudinary.com/msfnuwdi/image/upload/v1786342221/acspire_1024x1024.png', website_url = 'https://acspire.in' WHERE name = 'Acspire' AND (logo_url = '' OR logo_url IS NULL);
+    UPDATE businesses SET logo_url = 'https://res.cloudinary.com/msfnuwdi/image/upload/v1786342212/art_axis_1024x1024.png' WHERE name = 'ArtAxis' AND (logo_url = '' OR logo_url IS NULL);
+  `);
 
   saveDb(rawDb);
   console.log('[db] Database ready:', DB_PATH);

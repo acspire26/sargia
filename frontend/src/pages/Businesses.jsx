@@ -27,8 +27,9 @@ const defaultBusinesses = [
     }
 ];
 
-const getBusinessIcon = (id) => {
-    switch (id.toLowerCase()) {
+const getBusinessIcon = (nameOrId) => {
+    const key = String(nameOrId).toLowerCase();
+    switch (key) {
         case 'artemclava': return <Target size={32} className="transition-colors" />;
         case 'acspire': return <Cpu size={32} className="transition-colors" />;
         case 'artaxis': return <Palette size={32} className="transition-colors" />;
@@ -104,7 +105,7 @@ const Businesses = () => {
                                         <img src={business.logo_url} alt={business.name} className="w-20 h-20 rounded-md object-contain filter grayscale group-hover:grayscale-0 group-hover:scale-105 origin-center transition-all duration-500 bg-white border border-slate-100 p-1" />
                                     ) : (
                                         <div className="w-20 h-20 rounded-md bg-slate-50 border border-slate-100 flex items-center justify-center mb-2 text-accent group-hover:scale-110 group-hover:bg-accent group-hover:text-white group-hover:-rotate-3 transition-all duration-500">
-                                            {getBusinessIcon(business.id)}
+                                            {getBusinessIcon(business.name)}
                                         </div>
                                     )}
                                 </div>

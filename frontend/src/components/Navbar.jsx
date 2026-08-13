@@ -49,7 +49,7 @@ const Navbar = () => {
                 <div className="flex justify-between items-center">
                     <div className="flex-shrink-0">
                         <a href="#home" onClick={(e) => scrollToSection(e, '#home')} className="text-2xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                            <img src="https://res.cloudinary.com/msfnuwdi/image/upload/v1786340166/WhatsApp_Image_2026-08-10_at_11.05.15_AM.jpg" alt="SARGIA Logo" className="h-12 w-12 rounded-full object-cover" />
+                            <img src="https://res.cloudinary.com/msfnuwdi/image/upload/v1786599827/ChatGPT_Image_Aug_13_2026_11_11_12_AM_1.png" alt="SARGIA Logo" className="h-12 w-12 rounded-full object-cover" />
                             SARGIA
                         </a>
                     </div>
