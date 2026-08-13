@@ -86,7 +86,7 @@ const Home = () => {
                             <span className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent"></span>
                             SHAPING THE FUTURE
                         </span>
-                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter text-gray-900 mb-8 leading-[1.05]">
+                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter text-gray-900 mb-8 leading-[1.05]">
                             Build <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-500">Beyond</span><br/>
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-hover">Boundaries.</span>
                         </h1>

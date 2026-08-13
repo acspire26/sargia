@@ -162,7 +162,7 @@ module.exports = (async () => {
   rawDb.exec(`
     UPDATE businesses SET logo_url = 'https://res.cloudinary.com/msfnuwdi/image/upload/v1786342081/ChatGPT_Image_Aug_10_2026_11_37_25_AM.png', website_url = 'https://artemclava.in' WHERE name = 'Artemclava' AND (logo_url = '' OR logo_url IS NULL);
     UPDATE businesses SET logo_url = 'https://res.cloudinary.com/msfnuwdi/image/upload/v1786342221/acspire_1024x1024.png', website_url = 'https://acspire.in' WHERE name = 'Acspire' AND (logo_url = '' OR logo_url IS NULL);
-    UPDATE businesses SET logo_url = 'https://res.cloudinary.com/msfnuwdi/image/upload/v1786342212/art_axis_1024x1024.png' WHERE name = 'ArtAxis' AND (logo_url = '' OR logo_url IS NULL);
+    UPDATE businesses SET logo_url = 'https://res.cloudinary.com/msfnuwdi/image/upload/v1786342212/art_axis_1024x1024.png', website_url = 'https://artaxis.academy' WHERE name = 'ArtAxis';
   `);
 
   saveDb(rawDb);

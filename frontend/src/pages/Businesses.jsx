@@ -22,7 +22,7 @@ const defaultBusinesses = [
         id: 'artaxis',
         name: 'ArtAxis',
         description: 'Connecting the global creative economy. ArtAxis leverages technology to empower artists, creators, and platforms in the digital age.',
-        website_url: '',
+        website_url: 'https://artaxis.academy',
         logo_url: 'https://res.cloudinary.com/msfnuwdi/image/upload/v1786342212/art_axis_1024x1024.png'
     }
 ];
