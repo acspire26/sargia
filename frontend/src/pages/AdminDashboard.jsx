@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
-import { getEnquiries, syncEnquiryToSheets, getAllBusinesses, createBusiness, updateBusiness, deleteBusiness, toggleBusiness } from '../services/api';
+import {
+  getEnquiries, syncEnquiryToSheets, getAllBusinesses,
+  createBusiness, updateBusiness, deleteBusiness, toggleBusiness,
+  getCompanyInfo, updateCompanyInfo
+} from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, CheckCircle, AlertTriangle, Eye, RefreshCw, 
+import {
+  ArrowLeft, CheckCircle, AlertTriangle, Eye, RefreshCw,
   FileSpreadsheet, Lock, Database, Search, Plus, Pencil, Trash2,
-  ToggleLeft, ToggleRight, X, Building2, Mail
+  ToggleLeft, ToggleRight, X, Building2, Mail, Info, Save
 } from 'lucide-react';
 
 // ── Reusable Input ────────────────────────────────────────────────────────────
-const FormInput = ({ label, name, value, onChange, type = 'text', placeholder = '', required = false, textarea = false }) => (
+const FormInput = ({ label, name, value, onChange, type = 'text', placeholder = '', required = false, textarea = false, rows = 3 }) => (
   <div>
-    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">{label}{required && <span className="text-red-500 ml-1">*</span>}</label>
+    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+      {label}{required && <span className="text-red-500 ml-1">*</span>}
+    </label>
     {textarea ? (
-      <textarea name={name} value={value} onChange={onChange} required={required} rows={3}
+      <textarea name={name} value={value} onChange={onChange} required={required} rows={rows}
         placeholder={placeholder}
         className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-accent focus:bg-white focus:ring-1 focus:ring-accent outline-none text-sm transition-all resize-none" />
     ) : (
@@ -63,7 +69,6 @@ const BusinessModal = ({ business, onClose, onSave }) => {
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95 }}
         className="bg-white w-full max-w-lg rounded-[2rem] border border-slate-200 shadow-2xl relative z-10 overflow-hidden">
-        
         <div className="p-6 border-b border-slate-100 flex justify-between items-center">
           <div>
             <h3 className="text-xl font-extrabold text-gray-900">{isEdit ? 'Edit Business' : 'Add New Business'}</h3>
@@ -71,16 +76,13 @@ const BusinessModal = ({ business, onClose, onSave }) => {
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-gray-400 hover:text-gray-600"><X size={20} /></button>
         </div>
-
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <FormInput label="Business Name" name="name" value={form.name} onChange={handleChange} required placeholder="e.g. Artemclava" />
           <FormInput label="Description" name="description" value={form.description} onChange={handleChange} required textarea placeholder="Brief description of the business..." />
           <FormInput label="Logo URL" name="logo_url" value={form.logo_url} onChange={handleChange} placeholder="https://example.com/logo.png" />
           <FormInput label="Website URL" name="website_url" value={form.website_url} onChange={handleChange} placeholder="https://example.com" />
           <FormInput label="Display Order" name="sort_order" value={form.sort_order} onChange={handleChange} type="number" placeholder="1" />
-
           {error && <p className="text-red-500 text-sm font-bold bg-red-50 p-3 rounded-lg">{error}</p>}
-
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={loading}
               className="flex-1 py-3 rounded-lg bg-accent text-white font-bold hover:bg-accent-hover transition-colors shadow-md disabled:opacity-50 text-sm">
@@ -123,6 +125,166 @@ const DeleteModal = ({ business, onClose, onConfirm, loading }) => (
   </div>
 );
 
+// ── Company Info Tab ──────────────────────────────────────────────────────────
+const CompanyInfoTab = () => {
+  const [form, setForm] = useState(null);
+  const [companyId, setCompanyId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [coreValuesInput, setCoreValuesInput] = useState('');
+
+  useEffect(() => {
+    fetchInfo();
+  }, []);
+
+  const fetchInfo = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await getCompanyInfo();
+      const info = data.results ? data.results[0] : data;
+      if (info) {
+        setCompanyId(info.id);
+        const cv = Array.isArray(info.core_values) ? info.core_values : [];
+        setForm({
+          name: info.name || '',
+          about_text: info.about_text || '',
+          vision_text: info.vision_text || '',
+          mission_text: info.mission_text || '',
+          email: info.email || '',
+          phone: info.phone || '',
+          address: info.address || '',
+          linkedin_url: info.linkedin_url || '',
+          twitter_url: info.twitter_url || '',
+          core_values: cv,
+        });
+        setCoreValuesInput(cv.join(', '));
+      }
+    } catch (err) {
+      setError('Failed to load company info. Is the backend running?');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    setSuccess(false);
+    try {
+      const coreValues = coreValuesInput.split(',').map(v => v.trim()).filter(Boolean);
+      await updateCompanyInfo(companyId, { ...form, core_values: coreValues });
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Save failed. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return (
+    <div className="text-center py-24 text-gray-400">
+      <RefreshCw size={28} className="animate-spin mx-auto mb-4 text-accent" />
+      Loading company info...
+    </div>
+  );
+
+  if (!form) return (
+    <div className="text-center py-24 text-red-500 font-bold">
+      <Database size={36} className="mx-auto mb-4 opacity-50" />
+      {error || 'Could not load company info.'}
+    </div>
+  );
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-extrabold text-gray-900">Company Information</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Changes update the public website immediately.</p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Basic Info */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-5">
+          <h3 className="text-sm font-extrabold text-gray-400 uppercase tracking-wider">Basic Details</h3>
+          <FormInput label="Company Name" name="name" value={form.name} onChange={handleChange} required placeholder="SARGIA Group" />
+          <FormInput label="About Text" name="about_text" value={form.about_text} onChange={handleChange} textarea rows={4} placeholder="Brief description shown on the About page..." />
+        </div>
+
+        {/* Vision & Mission */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-5">
+          <h3 className="text-sm font-extrabold text-gray-400 uppercase tracking-wider">Vision & Mission</h3>
+          <FormInput label="Vision Statement" name="vision_text" value={form.vision_text} onChange={handleChange} textarea rows={3} placeholder="Our vision is to..." />
+          <FormInput label="Mission Statement" name="mission_text" value={form.mission_text} onChange={handleChange} textarea rows={3} placeholder="Our mission is to..." />
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+              Core Values <span className="normal-case text-gray-400 font-normal">(comma-separated, e.g. Integrity, Innovation, Excellence)</span>
+            </label>
+            <input
+              type="text"
+              value={coreValuesInput}
+              onChange={(e) => setCoreValuesInput(e.target.value)}
+              placeholder="Integrity, Innovation, Excellence"
+              className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:border-accent focus:bg-white focus:ring-1 focus:ring-accent outline-none text-sm transition-all"
+            />
+            {coreValuesInput && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {coreValuesInput.split(',').map(v => v.trim()).filter(Boolean).map((v, i) => (
+                  <span key={i} className="px-3 py-1 bg-accent/10 text-accent text-xs font-bold rounded-full">{v}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Contact Details */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-5">
+          <h3 className="text-sm font-extrabold text-gray-400 uppercase tracking-wider">Contact Details</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FormInput label="Email Address" name="email" value={form.email} onChange={handleChange} type="email" placeholder="contact@sargiagroup.com" />
+            <FormInput label="Phone Number" name="phone" value={form.phone} onChange={handleChange} placeholder="6383283731, 8939774383" />
+          </div>
+          <FormInput label="Location / Address" name="address" value={form.address} onChange={handleChange} placeholder="Porur, Chennai, India" />
+        </div>
+
+        {/* Social Links */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-md p-6 space-y-5">
+          <h3 className="text-sm font-extrabold text-gray-400 uppercase tracking-wider">Social Links</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FormInput label="LinkedIn URL" name="linkedin_url" value={form.linkedin_url} onChange={handleChange} placeholder="https://linkedin.com/company/..." />
+            <FormInput label="Twitter / X URL" name="twitter_url" value={form.twitter_url} onChange={handleChange} placeholder="https://twitter.com/..." />
+          </div>
+        </div>
+
+        {/* Feedback & Save */}
+        {error && <p className="text-red-500 text-sm font-bold bg-red-50 border border-red-200 p-4 rounded-xl">{error}</p>}
+        {success && (
+          <div className="flex items-center gap-3 text-accent font-bold bg-green-50 border border-accent/20 p-4 rounded-xl text-sm">
+            <CheckCircle size={18} /> Company info saved successfully!
+          </div>
+        )}
+
+        <div className="flex justify-end">
+          <button type="submit" disabled={saving}
+            className="flex items-center gap-2 px-8 py-3.5 rounded-xl bg-accent text-white font-bold hover:bg-accent-hover transition-colors shadow-lg disabled:opacity-50">
+            <Save size={16} />
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </form>
+    </motion.div>
+  );
+};
+
+
 // ═════════════════════════════════════════════════════════════════════════════
 // MAIN ADMIN DASHBOARD
 // ═════════════════════════════════════════════════════════════════════════════
@@ -136,7 +298,7 @@ const AdminDashboard = () => {
   const [businesses, setBusinesses] = useState([]);
   const [bizLoading, setBizLoading] = useState(false);
   const [bizError, setBizError] = useState('');
-  const [editingBusiness, setEditingBusiness] = useState(null); // null = closed, {} = new, {id,...} = edit
+  const [editingBusiness, setEditingBusiness] = useState(null);
   const [deletingBusiness, setDeletingBusiness] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [toggleLoadingId, setToggleLoadingId] = useState(null);
@@ -219,7 +381,7 @@ const AdminDashboard = () => {
     setEnquiryError('');
     try {
       const data = await getEnquiries();
-      setEnquiries(data);
+      setEnquiries(Array.isArray(data) ? data : (data.results || []));
     } catch (err) {
       setEnquiryError('Failed to fetch enquiries. Make sure the backend is running.');
     } finally {
@@ -286,7 +448,7 @@ const AdminDashboard = () => {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/5 rounded-full filter blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
           <div className="flex items-center gap-4">
@@ -305,10 +467,11 @@ const AdminDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm w-fit mb-8">
+        <div className="flex gap-2 bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm w-fit mb-8 flex-wrap">
           {[
             { id: 'businesses', label: 'Businesses', icon: Building2 },
             { id: 'enquiries', label: 'Enquiries', icon: Mail },
+            { id: 'company', label: 'Company Info', icon: Info },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all ${
@@ -380,7 +543,6 @@ const AdminDashboard = () => {
 
                       {/* Actions */}
                       <div className="flex items-center gap-1 shrink-0">
-                        {/* Toggle */}
                         <button onClick={() => handleToggle(biz.id)} disabled={toggleLoadingId === biz.id}
                           className={`p-2 rounded-lg transition-all hover:scale-110 disabled:opacity-50 ${biz.is_active ? 'text-accent hover:bg-accent/10' : 'text-gray-400 hover:bg-slate-100'}`}
                           title={biz.is_active ? 'Hide from website' : 'Show on website'}>
@@ -388,13 +550,11 @@ const AdminDashboard = () => {
                             ? <RefreshCw size={18} className="animate-spin" />
                             : biz.is_active ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
                         </button>
-                        {/* Edit */}
                         <button onClick={() => setEditingBusiness(biz)}
                           className="p-2 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-slate-100 transition-all"
                           title="Edit business">
                           <Pencil size={17} />
                         </button>
-                        {/* Delete */}
                         <button onClick={() => setDeletingBusiness(biz)}
                           className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
                           title="Delete business">
@@ -504,6 +664,10 @@ const AdminDashboard = () => {
             </div>
           </motion.div>
         )}
+
+        {/* ══ COMPANY INFO TAB ════════════════════════════════════════════ */}
+        {activeTab === 'company' && <CompanyInfoTab />}
+
       </div>
 
       {/* ── Business Add/Edit Modal ── */}

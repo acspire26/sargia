@@ -104,7 +104,7 @@ const Contact = () => {
                             </div>
                             <div>
                                 <h4 className="text-gray-900 font-extrabold mb-1 group-hover:text-accent transition-colors duration-300">Location</h4>
-                                <p className="text-gray-600 text-sm leading-relaxed font-medium">Porur, Chennai, India</p>
+                                <p className="text-gray-600 text-sm leading-relaxed font-medium">{companyInfo?.address || 'Porur, Chennai, India'}</p>
                             </div>
                         </div>
                     </motion.div>
